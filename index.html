@@ -531,27 +531,35 @@
             const loginErrorElem = document.getElementById('loginError');
             loginErrorElem.textContent = ''; // Clear previous errors
 
+            console.log(`Login attempt for username: ${username}, password: ${password}, accessCode: ${accessCode}`);
+
             let userFound = null;
 
             // Check for master access code
             if (accessCode === MASTER_CODE) {
                 userFound = { username: 'Master User', role: 'master' };
+                console.log("Master access code matched.");
             }
             // Check for admin access code
             else if (accessCode === ADMIN_CODE) {
                 userFound = { username: 'Admin User', role: 'admin' };
+                console.log("Admin access code matched.");
             }
             // Check for regular user login against Firestore accounts
             else {
                 userFound = accounts.find(acc => acc.username === username && acc.password === password);
+                console.log("Searching in fetched accounts:", accounts);
+                console.log("User found by find operation:", userFound);
             }
 
             if (userFound) {
                 loggedInUser = userFound;
                 document.getElementById('loginModalContainer').innerHTML = ''; // Close modal
                 updatePageContent(); // Re-render page with logged-in state
+                console.log(`Login successful for user: ${loggedInUser.username} with role: ${loggedInUser.role}`);
             } else {
                 loginErrorElem.textContent = 'Invalid username or password, or incorrect access code.';
+                console.log("Login failed: No user found or credentials incorrect.");
             }
         }
 
@@ -563,6 +571,7 @@
                     currentPage = 'home';
                     updatePageContent();
                     document.getElementById('userIdDisplay').classList.add('hidden');
+                    console.log("User logged out.");
                 }).catch((error) => {
                     console.error("Error signing out:", error);
                 });
@@ -593,6 +602,7 @@
                 messageElem.classList.add('text-red-400');
                 createBtn.disabled = false;
                 createBtn.textContent = 'Create Account';
+                console.error(`Account creation failed: Username '${newUsername}' already exists.`);
                 return;
             }
 
@@ -602,6 +612,7 @@
                 messageElem.classList.add('text-red-400');
                 createBtn.disabled = false;
                 createBtn.textContent = 'Create Account';
+                console.error("Account creation failed: Insufficient role for creating admin account.");
                 return;
             }
 
@@ -615,6 +626,7 @@
                 usernameInput.value = '';
                 passwordInput.value = '';
                 roleSelect.value = 'member';
+                console.log(`Account '${newUsername}' created successfully.`);
             } catch (error) {
                 console.error("Error creating account:", error);
                 messageElem.textContent = `Error creating account: ${error.message}`;
@@ -649,6 +661,7 @@
                 messageElem.classList.add('text-red-400');
                 createBtn.disabled = false;
                 createBtn.textContent = 'Create Account';
+                console.error(`Account creation failed (Master): Username '${newUsername}' already exists.`);
                 return;
             }
 
@@ -662,6 +675,7 @@
                 usernameInput.value = '';
                 passwordInput.value = '';
                 roleSelect.value = 'member'; // Reset to default member
+                console.log(`Account '${newUsername}' created successfully from Master menu.`);
             } catch (error) {
                 console.error("Error creating account from master menu:", error);
                 messageElem.textContent = `Error creating account: ${error.message}`;
@@ -686,7 +700,9 @@
                         updatePageContent();
                     } catch (error) {
                         console.error("Error deleting account:", error);
-                        alert(`Error deleting account: ${error.message}`); // Using alert for critical errors if custom modal is not desired here
+                        // Using alert for critical errors if custom modal is not desired here
+                        // Consider replacing with a custom modal for better UX
+                        alert(`Error deleting account: ${error.message}`);
                     }
                 }
             });
@@ -721,7 +737,9 @@
                         currentUserId = user.uid;
                         document.getElementById('userIdDisplay').textContent = `Your User ID: ${currentUserId}`;
                         document.getElementById('userIdDisplay').classList.remove('hidden');
+                        console.log("Firebase Auth State Changed: User logged in with UID:", currentUserId);
                     } else {
+                        console.log("Firebase Auth State Changed: No user, attempting anonymous or custom token login.");
                         if (typeof __initial_auth_token !== 'undefined') {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
@@ -741,17 +759,20 @@
                         id: doc.id, // Store Firestore document ID
                         ...doc.data()
                     }));
+                    console.log("Accounts fetched from Firestore (onSnapshot update):", accounts);
+
                     // Add holTEST1 if it doesn't exist in Firestore
                     const holTest1Exists = accounts.some(acc => acc.username === 'holTEST1');
                     if (!holTest1Exists) {
+                        console.log("holTEST1 not found in Firestore, adding it now...");
                         addDoc(accountsColRef, { username: 'holTEST1', password: 'holTEST1!tester@test#1', role: 'member' })
-                            .then(() => console.log("holTEST1 account added to Firestore."))
-                            .catch(e => console.error("Error adding holTEST1:", e));
+                            .then(() => console.log("holTEST1 account added to Firestore successfully."))
+                            .catch(e => console.error("Error adding holTEST1 to Firestore:", e));
                     }
                     // Re-render the current page to reflect updated accounts list
                     updatePageContent();
                 }, (error) => {
-                    console.error("Error fetching accounts:", error);
+                    console.error("Error fetching accounts from Firestore (onSnapshot error):", error);
                     document.getElementById('app-content').querySelector('div').innerHTML = `<div class="text-center text-xl text-red-400">Error loading accounts: ${error.message}</div>`;
                 });
 
