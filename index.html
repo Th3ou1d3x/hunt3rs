@@ -67,7 +67,6 @@
             <button id="servicesBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
                 Services
             </button>
-            <!-- Removed Group Services Button -->
             <button id="adminMenuBtn" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-75 hidden">
                 Admin Menu
             </button>
@@ -104,17 +103,18 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Realtime Database imports
+        import { getDatabase, ref, onValue, set, remove, push } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         // Global variables for Firebase and app state
-        let db;
+        let db; // This will now be the Realtime Database instance
         let auth;
         let currentUserId = null;
-        let isAuthReady = false; // To ensure auth is ready before Firestore ops
+        let isAuthReady = false; // To ensure auth is ready before DB ops
 
         // Application specific states
         let loggedInUser = null; // { username: '...', role: 'member' | 'admin' | 'master' }
-        let accounts = []; // Accounts fetched from Firestore
+        let accounts = []; // Accounts fetched from Realtime Database
         let currentPage = 'home';
         let confirmModalCallback = null; // Callback for custom confirmation modal
 
@@ -202,7 +202,7 @@
                         <li>Resource Library</li>
                     </ul>
                     <p class="mt-6 text-sm text-gray-400">
-                        Note: Accounts are now persistent and saved in Firestore.
+                        Note: Accounts are now persistent and saved in Firebase Realtime Database.
                     </p>
                 </div>
             `;
@@ -222,8 +222,6 @@
                 </div>
             `;
         }
-
-        // Removed renderGroupServicesPage function
 
         function renderAdminMenuPage() {
             const contentDiv = document.getElementById('app-content').querySelector('div');
@@ -293,7 +291,7 @@
                             }
                         </ul>
                         <p class="mt-4 text-sm text-gray-400">
-                            Note: These accounts are stored in Firestore and persist across sessions.
+                            Note: These accounts are stored in Firebase Realtime Database and persist across sessions.
                         </p>
                     </div>
                 </div>
@@ -376,14 +374,14 @@
                             }
                         </ul>
                         <p class="mt-4 text-sm text-gray-400">
-                            Note: These accounts are stored in Firestore and persist across sessions.
+                            Note: These accounts are stored in Firebase Realtime Database and persist across sessions.
                         </p>
                     </div>
                 </div>
             `;
 
             // Add event listeners after rendering
-            document.getElementById('createMasterAccountForm').addEventListener('submit', handleCreateMasterAccount); // Changed ID
+            document.getElementById('createMasterAccountForm').addEventListener('submit', handleCreateMasterAccount);
             document.querySelectorAll('.delete-account-btn').forEach(button => {
                 button.addEventListener('click', (event) => {
                     const accountId = event.target.dataset.id;
@@ -423,7 +421,6 @@
                 case 'services':
                     renderServicesPage();
                     break;
-                // Removed case 'groupServices':
                 case 'adminMenu':
                     if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'master')) {
                         renderAdminMenuPage();
@@ -545,7 +542,7 @@
                 userFound = { username: 'Admin User', role: 'admin' };
                 console.log("Admin access code matched.");
             }
-            // Check for regular user login against Firestore accounts
+            // Check for regular user login against Realtime Database accounts
             else {
                 userFound = accounts.find(acc => acc.username === username && acc.password === password);
                 console.log("Searching in fetched accounts:", accounts);
@@ -578,7 +575,7 @@
             }
         }
 
-        // --- Firestore Account Management Logic (Admin/Master Menus) ---
+        // --- Realtime Database Account Management Logic (Admin/Master Menus) ---
         async function handleCreateAccount(event) {
             event.preventDefault();
             const form = event.target;
@@ -617,9 +614,9 @@
             }
 
             try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
-                await addDoc(accountsColRef, { username: newUsername, password: newPassword, role: newRole });
+                // Realtime Database uses push() for unique keys
+                const newAccountRef = push(ref(db, `artifacts/${__app_id}/public/data/accounts`));
+                await set(newAccountRef, { username: newUsername, password: newPassword, role: newRole });
                 messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
                 messageElem.classList.remove('text-red-400');
                 messageElem.classList.add('text-green-400');
@@ -638,18 +635,18 @@
             }
         }
 
-        async function handleCreateMasterAccount(event) { // Renamed function for clarity
+        async function handleCreateMasterAccount(event) {
             event.preventDefault();
             const form = event.target;
-            const usernameInput = form.querySelector('#newMasterUsername'); // Changed ID
-            const passwordInput = form.querySelector('#newMasterPassword'); // Changed ID
-            const roleSelect = form.querySelector('#newMasterRole'); // New ID for role select
+            const usernameInput = form.querySelector('#newMasterUsername');
+            const passwordInput = form.querySelector('#newMasterPassword');
+            const roleSelect = form.querySelector('#newMasterRole');
             const messageElem = form.querySelector('#masterMessage');
-            const createBtn = form.querySelector('#createMasterAccountBtn'); // Changed ID
+            const createBtn = form.querySelector('#createMasterAccountBtn');
 
             const newUsername = usernameInput.value;
             const newPassword = passwordInput.value;
-            const newRole = roleSelect.value; // Get selected role
+            const newRole = roleSelect.value;
 
             messageElem.textContent = '';
             createBtn.disabled = true;
@@ -666,15 +663,14 @@
             }
 
             try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
-                await addDoc(accountsColRef, { username: newUsername, password: newPassword, role: newRole }); // Use newRole
+                const newAccountRef = push(ref(db, `artifacts/${__app_id}/public/data/accounts`));
+                await set(newAccountRef, { username: newUsername, password: newPassword, role: newRole });
                 messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
                 messageElem.classList.remove('text-red-400');
                 messageElem.classList.add('text-green-400');
                 usernameInput.value = '';
                 passwordInput.value = '';
-                roleSelect.value = 'member'; // Reset to default member
+                roleSelect.value = 'member';
                 console.log(`Account '${newUsername}' created successfully from Master menu.`);
             } catch (error) {
                 console.error("Error creating account from master menu:", error);
@@ -691,17 +687,13 @@
             showConfirmModal(`Are you sure you want to delete account '${username}'?`, async (confirmed) => {
                 if (confirmed) {
                     try {
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                        const accountDocRef = doc(db, `artifacts/${appId}/public/data/accounts`, accountId);
-                        await deleteDoc(accountDocRef);
-                        // No need to manually update accounts array, onSnapshot will handle it
+                        // Realtime Database uses remove()
+                        await remove(ref(db, `artifacts/${__app_id}/public/data/accounts/${accountId}`));
                         console.log(`Account '${username}' deleted successfully!`);
-                        // Re-render the current page to update the list
-                        updatePageContent();
+                        // No need to manually update accounts array, onValue will handle it
+                        updatePageContent(); // Re-render the current page to update the list
                     } catch (error) {
                         console.error("Error deleting account:", error);
-                        // Using alert for critical errors if custom modal is not desired here
-                        // Consider replacing with a custom modal for better UX
                         alert(`Error deleting account: ${error.message}`);
                     }
                 }
@@ -714,23 +706,22 @@
 
             // Initialize Firebase
             try {
-                // IMPORTANT: For production, do NOT hardcode your Firebase config directly in client-side code.
-                // It exposes your API key. Instead, provide it securely via environment variables or a backend.
-                // For this demonstration, it's hardcoded as requested.
                 const firebaseConfig = {
                     apiKey: "AIzaSyDaq6yV-zyf_E5BBK1uNd6i3QtOJ1cQaG8",
                     authDomain: "hunt3rs-db-f10d3.firebaseapp.com",
                     projectId: "hunt3rs-db-f10d3",
                     storageBucket: "hunt3rs-db-f10d3.firebasestorage.app",
                     messagingSenderId: "741953319280",
-                    appId: "1:741953319280:web:8ab9db64a81ac151f79fb5"
+                    appId: "1:741953319280:web:8ab9db64a81ac151f79fb5",
+                    // Add databaseURL for Realtime Database based on projectId
+                    databaseURL: "https://hunt3rs-db-f10d3-default-rtdb.firebaseio.com" // Your Realtime Database URL
                 };
 
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                 
                 const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
                 auth = getAuth(app);
+                db = getDatabase(app); // Initialize Realtime Database
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
@@ -750,29 +741,30 @@
                     updatePageContent(); // Initial render after auth is ready
                 });
 
-                // Set up real-time listener for accounts
-                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
-                const q = query(accountsColRef);
+                // Set up real-time listener for accounts in Realtime Database
+                const accountsRef = ref(db, `artifacts/${appId}/public/data/accounts`);
+                onValue(accountsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    accounts = [];
+                    if (data) {
+                        for (const key in data) {
+                            accounts.push({ id: key, ...data[key] });
+                        }
+                    }
+                    console.log("Accounts fetched from Realtime Database (onValue update):", accounts);
 
-                onSnapshot(q, (snapshot) => {
-                    accounts = snapshot.docs.map(doc => ({
-                        id: doc.id, // Store Firestore document ID
-                        ...doc.data()
-                    }));
-                    console.log("Accounts fetched from Firestore (onSnapshot update):", accounts);
-
-                    // Add holTEST1 if it doesn't exist in Firestore
+                    // Add holTEST1 if it doesn't exist in Realtime Database
                     const holTest1Exists = accounts.some(acc => acc.username === 'holTEST1');
                     if (!holTest1Exists) {
-                        console.log("holTEST1 not found in Firestore, adding it now...");
-                        addDoc(accountsColRef, { username: 'holTEST1', password: 'holTEST1!tester@test#1', role: 'member' })
-                            .then(() => console.log("holTEST1 account added to Firestore successfully."))
-                            .catch(e => console.error("Error adding holTEST1 to Firestore:", e));
+                        console.log("holTEST1 not found in Realtime Database, adding it now...");
+                        const newAccountRef = push(accountsRef); // Generate a unique key
+                        set(newAccountRef, { username: 'holTEST1', password: 'holTEST1!tester@test#1', role: 'member' })
+                            .then(() => console.log("holTEST1 account added to Realtime Database successfully."))
+                            .catch(e => console.error("Error adding holTEST1 to Realtime Database:", e));
                     }
-                    // Re-render the current page to reflect updated accounts list
-                    updatePageContent();
+                    updatePageContent(); // Re-render the current page to reflect updated accounts list
                 }, (error) => {
-                    console.error("Error fetching accounts from Firestore (onSnapshot error):", error);
+                    console.error("Error fetching accounts from Realtime Database (onValue error):", error);
                     document.getElementById('app-content').querySelector('div').innerHTML = `<div class="text-center text-xl text-red-400">Error loading accounts: ${error.message}</div>`;
                 });
 
@@ -785,7 +777,6 @@
             document.getElementById('homeBtn').onclick = () => { currentPage = 'home'; updatePageContent(); };
             document.getElementById('memberMenuBtn').onclick = () => { currentPage = 'memberMenu'; updatePageContent(); };
             document.getElementById('servicesBtn').onclick = () => { currentPage = 'services'; updatePageContent(); };
-            // Removed groupServicesBtn event listener
             document.getElementById('adminMenuBtn').onclick = () => { currentPage = 'adminMenu'; updatePageContent(); };
             document.getElementById('masterMenuBtn').onclick = () => { currentPage = 'masterMenu'; updatePageContent(); };
         };
