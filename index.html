@@ -67,9 +67,7 @@
             <button id="servicesBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
                 Services
             </button>
-            <button id="groupServicesBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
-                Group Service
-            </button>
+            <!-- Removed Group Services Button -->
             <button id="adminMenuBtn" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-75 hidden">
                 Admin Menu
             </button>
@@ -214,66 +212,18 @@
             const contentDiv = document.getElementById('app-content').querySelector('div');
             contentDiv.innerHTML = `
                 <div class="space-y-6">
-                    <h2 class="text-4xl font-bold text-blue-300 mb-4">Our Services</h2>
+                    <h2 class="text-4xl font-bold text-blue-300 mb-4">Our Services: Group Offerings</h2>
                     <p class="text-lg text-gray-300 leading-relaxed">
-                        The Hunt3rs of Latimer offer a comprehensive suite of services tailored to meet diverse and demanding requirements.
-                        Our expertise spans across various critical domains.
+                        The Hunt3rs of Latimer specializes in providing tailored group service offerings. We focus on delivering comprehensive solutions and coordinated efforts for organizations and teams seeking to achieve their collective objectives. Our expertise ensures seamless collaboration and impactful results for larger-scale endeavors.
                     </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Strategic Consulting</h3>
-                            <p class="text-gray-300">Providing expert guidance for complex challenges and strategic planning.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Data Analysis & Intelligence</h3>
-                            <p class="text-gray-300">Extracting actionable insights from vast datasets for informed decision-making.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Security & Protection</h3>
-                            <p class="text-gray-300">Ensuring the safety and integrity of assets, information, and personnel.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Specialized Operations</h3>
-                            <p class="text-gray-300">Executing delicate and high-stakes operations with utmost precision.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderGroupServicesPage() {
-            const contentDiv = document.getElementById('app-content').querySelector('div');
-            contentDiv.innerHTML = `
-                <div class="space-y-6">
-                    <h2 class="text-4xl font-bold text-green-300 mb-4">Group Service Offerings</h2>
-                    <p class="text-lg text-gray-300 leading-relaxed">
-                        Our group services are designed for organizations and teams requiring collective solutions and coordinated efforts.
-                        We facilitate seamless collaboration and deliver results for larger-scale objectives.
-                    </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Team Training & Development</h3>
-                            <p class="text-gray-300">Customized programs to enhance team skills, cohesion, and operational efficiency.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Collaborative Project Management</h3>
-                            <p class="text-gray-300">Expert management and execution of complex projects involving multiple stakeholders.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Crisis Management & Response</h3>
-                            <p class="text-gray-300">Coordinated strategies and rapid response for critical situations affecting groups.</p>
-                        </div>
-                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
-                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Strategic Partnerships</h3>
-                            <p class="text-gray-300">Fostering alliances and joint ventures for mutual growth and expanded capabilities.</p>
-                        </div>
-                    </div>
-                    <button class="mt-8 px-8 py-4 bg-gradient-to-r from-green-600 to-green-800 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
-                        Inquire About Group Services
+                    <button class="mt-8 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+                        Group Services
                     </button>
                 </div>
             `;
         }
+
+        // Removed renderGroupServicesPage function
 
         function renderAdminMenuPage() {
             const contentDiv = document.getElementById('app-content').querySelector('div');
@@ -370,33 +320,43 @@
                     ${usernameDisplay}
 
                     <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 mx-auto max-w-md">
-                        <h3 class="text-2xl font-semibold text-red-200 mb-4">Create New Admin Account</h3>
-                        <form id="createAdminAccountForm" class="space-y-4">
+                        <h3 class="text-2xl font-semibold text-red-200 mb-4">Create New Account</h3>
+                        <form id="createMasterAccountForm" class="space-y-4">
                             <div>
-                                <label for="newAdminUsername" class="block text-gray-300 text-left mb-2">Admin Username:</label>
+                                <label for="newMasterUsername" class="block text-gray-300 text-left mb-2">Username:</label>
                                 <input
                                     type="text"
-                                    id="newAdminUsername"
+                                    id="newMasterUsername"
                                     class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                                     required
                                 />
                             </div>
                             <div>
-                                <label for="newAdminPassword" class="block text-gray-300 text-left mb-2">Admin Password:</label>
+                                <label for="newMasterPassword" class="block text-gray-300 text-left mb-2">Password:</label>
                                 <input
                                     type="password"
-                                    id="newAdminPassword"
+                                    id="newMasterPassword"
                                     class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                                     required
                                 />
+                            </div>
+                            <div>
+                                <label for="newMasterRole" class="block text-gray-300 text-left mb-2">Role:</label>
+                                <select
+                                    id="newMasterRole"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                >
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                </select>
                             </div>
                             <p id="masterMessage" class="text-sm"></p>
                             <button
                                 type="submit"
-                                id="createAdminAccountBtn"
+                                id="createMasterAccountBtn"
                                 class="w-full py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
                             >
-                                Create Admin Account
+                                Create Account
                             </button>
                         </form>
                     </div>
@@ -423,7 +383,7 @@
             `;
 
             // Add event listeners after rendering
-            document.getElementById('createAdminAccountForm').addEventListener('submit', handleCreateAdminAccount);
+            document.getElementById('createMasterAccountForm').addEventListener('submit', handleCreateMasterAccount); // Changed ID
             document.querySelectorAll('.delete-account-btn').forEach(button => {
                 button.addEventListener('click', (event) => {
                     const accountId = event.target.dataset.id;
@@ -463,9 +423,7 @@
                 case 'services':
                     renderServicesPage();
                     break;
-                case 'groupServices':
-                    renderGroupServicesPage();
-                    break;
+                // Removed case 'groupServices':
                 case 'adminMenu':
                     if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'master')) {
                         renderAdminMenuPage();
@@ -668,47 +626,50 @@
             }
         }
 
-        async function handleCreateAdminAccount(event) {
+        async function handleCreateMasterAccount(event) { // Renamed function for clarity
             event.preventDefault();
             const form = event.target;
-            const usernameInput = form.querySelector('#newAdminUsername');
-            const passwordInput = form.querySelector('#newAdminPassword');
+            const usernameInput = form.querySelector('#newMasterUsername'); // Changed ID
+            const passwordInput = form.querySelector('#newMasterPassword'); // Changed ID
+            const roleSelect = form.querySelector('#newMasterRole'); // New ID for role select
             const messageElem = form.querySelector('#masterMessage');
-            const createBtn = form.querySelector('#createAdminAccountBtn');
+            const createBtn = form.querySelector('#createMasterAccountBtn'); // Changed ID
 
-            const newAdminUsername = usernameInput.value;
-            const newAdminPassword = passwordInput.value;
+            const newUsername = usernameInput.value;
+            const newPassword = passwordInput.value;
+            const newRole = roleSelect.value; // Get selected role
 
             messageElem.textContent = '';
             createBtn.disabled = true;
             createBtn.textContent = 'Creating...';
 
-            if (accounts.some(acc => acc.username === newAdminUsername)) {
+            if (accounts.some(acc => acc.username === newUsername)) {
                 messageElem.textContent = 'Error: Username already exists.';
                 messageElem.classList.remove('text-green-400');
                 messageElem.classList.add('text-red-400');
                 createBtn.disabled = false;
-                createBtn.textContent = 'Create Admin Account';
+                createBtn.textContent = 'Create Account';
                 return;
             }
 
             try {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                 const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
-                await addDoc(accountsColRef, { username: newAdminUsername, password: newAdminPassword, role: 'admin' });
-                messageElem.textContent = `Admin account '${newAdminUsername}' created successfully!`;
+                await addDoc(accountsColRef, { username: newUsername, password: newPassword, role: newRole }); // Use newRole
+                messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
                 messageElem.classList.remove('text-red-400');
                 messageElem.classList.add('text-green-400');
                 usernameInput.value = '';
                 passwordInput.value = '';
+                roleSelect.value = 'member'; // Reset to default member
             } catch (error) {
-                console.error("Error creating admin account:", error);
-                messageElem.textContent = `Error creating admin account: ${error.message}`;
+                console.error("Error creating account from master menu:", error);
+                messageElem.textContent = `Error creating account: ${error.message}`;
                 messageElem.classList.remove('text-green-400');
                 messageElem.classList.add('text-red-400');
             } finally {
                 createBtn.disabled = false;
-                createBtn.textContent = 'Create Admin Account';
+                createBtn.textContent = 'Create Account';
             }
         }
 
@@ -792,7 +753,7 @@
             document.getElementById('homeBtn').onclick = () => { currentPage = 'home'; updatePageContent(); };
             document.getElementById('memberMenuBtn').onclick = () => { currentPage = 'memberMenu'; updatePageContent(); };
             document.getElementById('servicesBtn').onclick = () => { currentPage = 'services'; updatePageContent(); };
-            document.getElementById('groupServicesBtn').onclick = () => { currentPage = 'groupServices'; updatePageContent(); };
+            // Removed groupServicesBtn event listener
             document.getElementById('adminMenuBtn').onclick = () => { currentPage = 'adminMenu'; updatePageContent(); };
             document.getElementById('masterMenuBtn').onclick = () => { currentPage = 'masterMenu'; updatePageContent(); };
         };
