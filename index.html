@@ -698,9 +698,20 @@
 
             // Initialize Firebase
             try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                // IMPORTANT: For production, do NOT hardcode your Firebase config directly in client-side code.
+                // It exposes your API key. Instead, provide it securely via environment variables or a backend.
+                // For this demonstration, it's hardcoded as requested.
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDaq6yV-zyf_E5BBK1uNd6i3QtOJ1cQaG8",
+                    authDomain: "hunt3rs-db-f10d3.firebaseapp.com",
+                    projectId: "hunt3rs-db-f10d3",
+                    storageBucket: "hunt3rs-db-f10d3.firebasestorage.app",
+                    messagingSenderId: "741953319280",
+                    appId: "1:741953319280:web:8ab9db64a81ac151f79fb5"
+                };
 
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
