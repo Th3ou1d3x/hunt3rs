@@ -1,12 +1,801 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Hunt3rs of Latimer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #1a202c; /* gray-900 */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        /* Custom modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #2d3748; /* gray-800 */
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            max-width: 28rem; /* max-w-md */
+            width: 100%;
+            position: relative;
+            border: 1px solid #4a5568; /* border-gray-700 */
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #a0aec0; /* gray-400 */
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-900 text-white font-inter flex flex-col">
 
-  <head>
-    <script scr=script.js></script>
-  </head>
+    <!-- Header and Navigation -->
+    <header class="bg-gray-800 shadow-lg py-4 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center rounded-b-lg">
+        <h1 class="text-4xl font-extrabold text-teal-400 mb-4 md:mb-0">The Hunt3rs of Latimer</h1>
+        <nav class="flex flex-wrap justify-center gap-4">
+            <button id="homeBtn" class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                Home
+            </button>
+            <button id="memberMenuBtn" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                Member Menu
+            </button>
+            <button id="servicesBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Services
+            </button>
+            <button id="groupServicesBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                Group Service
+            </button>
+            <button id="adminMenuBtn" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-75 hidden">
+                Admin Menu
+            </button>
+            <button id="masterMenuBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 hidden">
+                Master Menu
+            </button>
+            <button id="authBtn" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">
+                Login
+            </button>
+        </nav>
+    </header>
 
-  <body>
-    <h1>Hello, World</h1>
-  </body>
+    <!-- Main content area where pages are rendered -->
+    <main id="app-content" class="flex-grow p-6 md:p-12 flex items-center justify-center">
+        <div class="bg-gray-800 p-8 md:p-12 rounded-xl shadow-2xl max-w-4xl w-full text-center border border-gray-700">
+            <!-- Content will be injected here by JavaScript -->
+            <div class="text-center text-xl text-gray-400">Loading website data...</div>
+        </div>
+    </main>
 
+    <!-- Login Modal Container -->
+    <div id="loginModalContainer"></div>
+
+    <!-- Confirmation Modal Container -->
+    <div id="confirmModalContainer"></div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 shadow-lg py-4 px-6 md:px-12 text-center text-gray-400 rounded-t-lg mt-auto">
+        <p>&copy; <span id="currentYear"></span> The Hunt3rs of Latimer. All rights reserved.</p>
+        <p id="userIdDisplay" class="text-xs mt-1 hidden"></p>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase and app state
+        let db;
+        let auth;
+        let currentUserId = null;
+        let isAuthReady = false; // To ensure auth is ready before Firestore ops
+
+        // Application specific states
+        let loggedInUser = null; // { username: '...', role: 'member' | 'admin' | 'master' }
+        let accounts = []; // Accounts fetched from Firestore
+        let currentPage = 'home';
+        let confirmModalCallback = null; // Callback for custom confirmation modal
+
+        // Hardcoded access codes (for simulation only - in a real app, these would be managed securely)
+        const ADMIN_CODE = "fe4rtf-ds3Fl2-d2x5fg-f43eFd";
+        const MASTER_CODE = "master!avash+$[]1234";
+
+        // --- Utility Functions ---
+
+        // Function to show a custom confirmation modal
+        function showConfirmModal(message, callback) {
+            const container = document.getElementById('confirmModalContainer');
+            container.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content text-center">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-4">Confirm Action</h3>
+                        <p class="text-lg text-gray-300 mb-6">${message}</p>
+                        <div class="flex justify-center space-x-4">
+                            <button id="confirmYesBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                                Yes
+                            </button>
+                            <button id="confirmNoBtn" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                                No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            confirmModalCallback = callback;
+
+            document.getElementById('confirmYesBtn').onclick = () => {
+                confirmModalCallback(true);
+                container.innerHTML = ''; // Close modal
+                confirmModalCallback = null;
+            };
+            document.getElementById('confirmNoBtn').onclick = () => {
+                confirmModalCallback(false);
+                container.innerHTML = ''; // Close modal
+                confirmModalCallback = null;
+            };
+        }
+
+        // --- Page Rendering Functions ---
+
+        function renderHomePage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-5xl font-bold text-teal-300 mb-4">Welcome to The Hunt3rs of Latimer</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        Dedicated to excellence and precision in every endeavor. We are a collective of skilled individuals,
+                        committed to achieving your objectives with unparalleled expertise and discretion.
+                    </p>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        Explore our services and discover how we can assist you.
+                    </p>
+                    <div class="mt-8 flex justify-center space-x-4">
+                        <button class="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+                            Learn More
+                        </button>
+                        <button class="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+                            Contact Us
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMemberMenuPage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            const usernameDisplay = loggedInUser ? `<p class="text-xl text-gray-200">Welcome, <span class="font-semibold text-purple-400">${loggedInUser.username}</span>!</p>` : '';
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-4xl font-bold text-purple-300 mb-4">Member Menu</h2>
+                    ${usernameDisplay}
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        This section is exclusively for our esteemed members. Here you can access your personalized dashboard,
+                        mission briefings, secure communications, and exclusive resources.
+                    </p>
+                    <ul class="list-disc list-inside text-left text-gray-300 mx-auto max-w-md space-y-2">
+                        <li>Access Mission Control</li>
+                        <li>View Personal Dossier</li>
+                        <li>Secure Message Center</li>
+                        <li>Training & Development</li>
+                        <li>Resource Library</li>
+                    </ul>
+                    <p class="mt-6 text-sm text-gray-400">
+                        Note: Accounts are now persistent and saved in Firestore.
+                    </p>
+                </div>
+            `;
+        }
+
+        function renderServicesPage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-4xl font-bold text-blue-300 mb-4">Our Services</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        The Hunt3rs of Latimer offer a comprehensive suite of services tailored to meet diverse and demanding requirements.
+                        Our expertise spans across various critical domains.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Strategic Consulting</h3>
+                            <p class="text-gray-300">Providing expert guidance for complex challenges and strategic planning.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Data Analysis & Intelligence</h3>
+                            <p class="text-gray-300">Extracting actionable insights from vast datasets for informed decision-making.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Security & Protection</h3>
+                            <p class="text-gray-300">Ensuring the safety and integrity of assets, information, and personnel.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-blue-200 mb-2">Specialized Operations</h3>
+                            <p class="text-gray-300">Executing delicate and high-stakes operations with utmost precision.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGroupServicesPage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            contentDiv.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-4xl font-bold text-green-300 mb-4">Group Service Offerings</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        Our group services are designed for organizations and teams requiring collective solutions and coordinated efforts.
+                        We facilitate seamless collaboration and deliver results for larger-scale objectives.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Team Training & Development</h3>
+                            <p class="text-gray-300">Customized programs to enhance team skills, cohesion, and operational efficiency.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Collaborative Project Management</h3>
+                            <p class="text-gray-300">Expert management and execution of complex projects involving multiple stakeholders.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Crisis Management & Response</h3>
+                            <p class="text-gray-300">Coordinated strategies and rapid response for critical situations affecting groups.</p>
+                        </div>
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600">
+                            <h3 class="text-2xl font-semibold text-green-200 mb-2">Strategic Partnerships</h3>
+                            <p class="text-gray-300">Fostering alliances and joint ventures for mutual growth and expanded capabilities.</p>
+                        </div>
+                    </div>
+                    <button class="mt-8 px-8 py-4 bg-gradient-to-r from-green-600 to-green-800 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+                        Inquire About Group Services
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderAdminMenuPage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            const usernameDisplay = loggedInUser ? `<p class="text-lg text-gray-300 leading-relaxed">Welcome, <span class="font-semibold text-orange-400">${loggedInUser.username}</span>! Here you can manage user accounts.</p>` : '';
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <h2 class="text-4xl font-bold text-orange-300 mb-4">Admin Menu</h2>
+                    ${usernameDisplay}
+
+                    <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 mx-auto max-w-md">
+                        <h3 class="text-2xl font-semibold text-orange-200 mb-4">Create New Account</h3>
+                        <form id="createAccountForm" class="space-y-4">
+                            <div>
+                                <label for="newUsername" class="block text-gray-300 text-left mb-2">Username:</label>
+                                <input
+                                    type="text"
+                                    id="newUsername"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="newPassword" class="block text-gray-300 text-left mb-2">Password:</label>
+                                <input
+                                    type="password"
+                                    id="newPassword"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="newRole" class="block text-gray-300 text-left mb-2">Role:</label>
+                                <select
+                                    id="newRole"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <option value="member">Member</option>
+                                    ${loggedInUser && loggedInUser.role === 'master' ? '<option value="admin">Admin</option>' : ''}
+                                </select>
+                            </div>
+                            <p id="adminMessage" class="text-sm"></p>
+                            <button
+                                type="submit"
+                                id="createAccountBtn"
+                                class="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-75"
+                            >
+                                Create Account
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 mx-auto max-w-lg mt-8">
+                        <h3 class="text-2xl font-semibold text-orange-200 mb-4">Existing Accounts (Persistent)</h3>
+                        <ul id="accountsList" class="list-disc list-inside text-left text-gray-300 space-y-2">
+                            ${accounts.length === 0 ? '<p class="text-gray-400">No accounts found. Create one above!</p>' :
+                                accounts.map(acc => `
+                                    <li class="flex justify-between items-center">
+                                        <span><span class="font-semibold">${acc.username}</span> (Role: ${acc.role})</span>
+                                        ${(loggedInUser && (loggedInUser.role === 'master' || (loggedInUser.role === 'admin' && acc.role === 'member'))) ? `
+                                            <button data-id="${acc.id}" data-username="${acc.username}" class="delete-account-btn ml-4 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-full transition duration-300">
+                                                Delete
+                                            </button>
+                                        ` : ''}
+                                    </li>
+                                `).join('')
+                            }
+                        </ul>
+                        <p class="mt-4 text-sm text-gray-400">
+                            Note: These accounts are stored in Firestore and persist across sessions.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            // Add event listeners after rendering
+            document.getElementById('createAccountForm').addEventListener('submit', handleCreateAccount);
+            document.querySelectorAll('.delete-account-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const accountId = event.target.dataset.id;
+                    const username = event.target.dataset.username;
+                    handleDeleteAccount(accountId, username);
+                });
+            });
+        }
+
+        function renderMasterMenuPage() {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            const usernameDisplay = loggedInUser ? `<p class="text-lg text-gray-300 leading-relaxed">Welcome, <span class="font-semibold text-red-400">${loggedInUser.username}</span>! You have master control. Here you can create new admin accounts and manage all accounts.</p>` : '';
+
+            contentDiv.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <h2 class="text-4xl font-bold text-red-300 mb-4">Master Menu</h2>
+                    ${usernameDisplay}
+
+                    <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 mx-auto max-w-md">
+                        <h3 class="text-2xl font-semibold text-red-200 mb-4">Create New Admin Account</h3>
+                        <form id="createAdminAccountForm" class="space-y-4">
+                            <div>
+                                <label for="newAdminUsername" class="block text-gray-300 text-left mb-2">Admin Username:</label>
+                                <input
+                                    type="text"
+                                    id="newAdminUsername"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="newAdminPassword" class="block text-gray-300 text-left mb-2">Admin Password:</label>
+                                <input
+                                    type="password"
+                                    id="newAdminPassword"
+                                    class="w-full p-3 rounded-md bg-gray-600 border border-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    required
+                                />
+                            </div>
+                            <p id="masterMessage" class="text-sm"></p>
+                            <button
+                                type="submit"
+                                id="createAdminAccountBtn"
+                                class="w-full py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75"
+                            >
+                                Create Admin Account
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-gray-700 p-6 rounded-lg shadow-md border border-gray-600 mx-auto max-w-lg mt-8">
+                        <h3 class="text-2xl font-semibold text-red-200 mb-4">Existing Accounts (Persistent)</h3>
+                        <ul id="masterAccountsList" class="list-disc list-inside text-left text-gray-300 space-y-2">
+                            ${accounts.length === 0 ? '<p class="text-gray-400">No accounts found. Create one above!</p>' :
+                                accounts.map(acc => `
+                                    <li class="flex justify-between items-center">
+                                        <span><span class="font-semibold">${acc.username}</span> (Role: ${acc.role})</span>
+                                        <button data-id="${acc.id}" data-username="${acc.username}" class="delete-account-btn ml-4 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-full transition duration-300">
+                                            Delete
+                                        </button>
+                                    </li>
+                                `).join('')
+                            }
+                        </ul>
+                        <p class="mt-4 text-sm text-gray-400">
+                            Note: These accounts are stored in Firestore and persist across sessions.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            // Add event listeners after rendering
+            document.getElementById('createAdminAccountForm').addEventListener('submit', handleCreateAdminAccount);
+            document.querySelectorAll('.delete-account-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const accountId = event.target.dataset.id;
+                    const username = event.target.dataset.username;
+                    handleDeleteAccount(accountId, username);
+                });
+            });
+        }
+
+        function renderAuthRequiredMessage(message) {
+            const contentDiv = document.getElementById('app-content').querySelector('div');
+            contentDiv.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <h2 class="text-4xl font-bold text-red-400 mb-4">Access Denied</h2>
+                    <p class="text-lg text-gray-300 leading-relaxed">${message}</p>
+                    <button id="loginNowBtn" class="mt-8 px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+                        Login Now
+                    </button>
+                </div>
+            `;
+            document.getElementById('loginNowBtn').onclick = () => showLoginModal();
+        }
+
+        // --- Main Page Rendering Logic ---
+        function updatePageContent() {
+            switch (currentPage) {
+                case 'home':
+                    renderHomePage();
+                    break;
+                case 'memberMenu':
+                    if (loggedInUser && (loggedInUser.role === 'member' || loggedInUser.role === 'admin' || loggedInUser.role === 'master')) {
+                        renderMemberMenuPage();
+                    } else {
+                        renderAuthRequiredMessage("Please log in to access the Member Menu.");
+                    }
+                    break;
+                case 'services':
+                    renderServicesPage();
+                    break;
+                case 'groupServices':
+                    renderGroupServicesPage();
+                    break;
+                case 'adminMenu':
+                    if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'master')) {
+                        renderAdminMenuPage();
+                    } else {
+                        renderAuthRequiredMessage("Admin access required. Please log in.");
+                    }
+                    break;
+                case 'masterMenu':
+                    if (loggedInUser && loggedInUser.role === 'master') {
+                        renderMasterMenuPage();
+                    } else {
+                        renderAuthRequiredMessage("Master access required. Please log in.");
+                    }
+                    break;
+                default:
+                    renderHomePage();
+            }
+            updateNavigationButtons();
+        }
+
+        // --- Navigation and Auth Button Logic ---
+        function updateNavigationButtons() {
+            const adminBtn = document.getElementById('adminMenuBtn');
+            const masterBtn = document.getElementById('masterMenuBtn');
+            const authBtn = document.getElementById('authBtn');
+
+            if (loggedInUser) {
+                authBtn.textContent = `Logout (${loggedInUser.username})`;
+                authBtn.onclick = handleLogout;
+            } else {
+                authBtn.textContent = 'Login';
+                authBtn.onclick = showLoginModal;
+            }
+
+            if (loggedInUser && loggedInUser.role === 'admin') {
+                adminBtn.classList.remove('hidden');
+                masterBtn.classList.add('hidden');
+            } else if (loggedInUser && loggedInUser.role === 'master') {
+                adminBtn.classList.remove('hidden');
+                masterBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+                masterBtn.classList.add('hidden');
+            }
+        }
+
+        // --- Login Modal Logic ---
+        function showLoginModal() {
+            const container = document.getElementById('loginModalContainer');
+            container.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <button class="modal-close-button">&times;</button>
+                        <h2 class="text-3xl font-bold text-teal-300 mb-6 text-center">Login</h2>
+                        <form id="loginForm" class="space-y-4">
+                            <div>
+                                <label for="loginUsername" class="block text-gray-300 text-left mb-2">Username:</label>
+                                <input
+                                    type="text"
+                                    id="loginUsername"
+                                    class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label for="loginPassword" class="block text-gray-300 text-left mb-2">Password:</label>
+                                <input
+                                    type="password"
+                                    id="loginPassword"
+                                    class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    required
+                                />
+                            </div>
+                            <div class="text-center text-gray-400">OR</div>
+                            <div>
+                                <label for="loginAccessCode" class="block text-gray-300 text-left mb-2">Admin/Master Access Code:</label>
+                                <input
+                                    type="password"
+                                    id="loginAccessCode"
+                                    class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    placeholder="Enter admin or master code"
+                                />
+                            </div>
+                            <p id="loginError" class="text-red-400 text-sm text-center"></p>
+                            <button
+                                type="submit"
+                                class="w-full py-3 bg-gradient-to-r from-teal-500 to-blue-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75"
+                            >
+                                Login
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.querySelector('.modal-close-button').onclick = () => container.innerHTML = '';
+            document.getElementById('loginForm').addEventListener('submit', handleLoginAttempt);
+        }
+
+        function handleLoginAttempt(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const accessCode = document.getElementById('loginAccessCode').value;
+            const loginErrorElem = document.getElementById('loginError');
+            loginErrorElem.textContent = ''; // Clear previous errors
+
+            let userFound = null;
+
+            // Check for master access code
+            if (accessCode === MASTER_CODE) {
+                userFound = { username: 'Master User', role: 'master' };
+            }
+            // Check for admin access code
+            else if (accessCode === ADMIN_CODE) {
+                userFound = { username: 'Admin User', role: 'admin' };
+            }
+            // Check for regular user login against Firestore accounts
+            else {
+                userFound = accounts.find(acc => acc.username === username && acc.password === password);
+            }
+
+            if (userFound) {
+                loggedInUser = userFound;
+                document.getElementById('loginModalContainer').innerHTML = ''; // Close modal
+                updatePageContent(); // Re-render page with logged-in state
+            } else {
+                loginErrorElem.textContent = 'Invalid username or password, or incorrect access code.';
+            }
+        }
+
+        function handleLogout() {
+            if (auth) {
+                auth.signOut().then(() => {
+                    loggedInUser = null;
+                    currentUserId = null;
+                    currentPage = 'home';
+                    updatePageContent();
+                    document.getElementById('userIdDisplay').classList.add('hidden');
+                }).catch((error) => {
+                    console.error("Error signing out:", error);
+                });
+            }
+        }
+
+        // --- Firestore Account Management Logic (Admin/Master Menus) ---
+        async function handleCreateAccount(event) {
+            event.preventDefault();
+            const form = event.target;
+            const usernameInput = form.querySelector('#newUsername');
+            const passwordInput = form.querySelector('#newPassword');
+            const roleSelect = form.querySelector('#newRole');
+            const messageElem = form.querySelector('#adminMessage');
+            const createBtn = form.querySelector('#createAccountBtn');
+
+            const newUsername = usernameInput.value;
+            const newPassword = passwordInput.value;
+            const newRole = roleSelect.value;
+
+            messageElem.textContent = '';
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+
+            if (accounts.some(acc => acc.username === newUsername)) {
+                messageElem.textContent = 'Error: Username already exists.';
+                messageElem.classList.remove('text-green-400');
+                messageElem.classList.add('text-red-400');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+                return;
+            }
+
+            if (newRole === 'admin' && loggedInUser.role !== 'master') {
+                messageElem.textContent = 'Error: Only Master users can create Admin accounts.';
+                messageElem.classList.remove('text-green-400');
+                messageElem.classList.add('text-red-400');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+                return;
+            }
+
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
+                await addDoc(accountsColRef, { username: newUsername, password: newPassword, role: newRole });
+                messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
+                messageElem.classList.remove('text-red-400');
+                messageElem.classList.add('text-green-400');
+                usernameInput.value = '';
+                passwordInput.value = '';
+                roleSelect.value = 'member';
+            } catch (error) {
+                console.error("Error creating account:", error);
+                messageElem.textContent = `Error creating account: ${error.message}`;
+                messageElem.classList.remove('text-green-400');
+                messageElem.classList.add('text-red-400');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+            }
+        }
+
+        async function handleCreateAdminAccount(event) {
+            event.preventDefault();
+            const form = event.target;
+            const usernameInput = form.querySelector('#newAdminUsername');
+            const passwordInput = form.querySelector('#newAdminPassword');
+            const messageElem = form.querySelector('#masterMessage');
+            const createBtn = form.querySelector('#createAdminAccountBtn');
+
+            const newAdminUsername = usernameInput.value;
+            const newAdminPassword = passwordInput.value;
+
+            messageElem.textContent = '';
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+
+            if (accounts.some(acc => acc.username === newAdminUsername)) {
+                messageElem.textContent = 'Error: Username already exists.';
+                messageElem.classList.remove('text-green-400');
+                messageElem.classList.add('text-red-400');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Admin Account';
+                return;
+            }
+
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
+                await addDoc(accountsColRef, { username: newAdminUsername, password: newAdminPassword, role: 'admin' });
+                messageElem.textContent = `Admin account '${newAdminUsername}' created successfully!`;
+                messageElem.classList.remove('text-red-400');
+                messageElem.classList.add('text-green-400');
+                usernameInput.value = '';
+                passwordInput.value = '';
+            } catch (error) {
+                console.error("Error creating admin account:", error);
+                messageElem.textContent = `Error creating admin account: ${error.message}`;
+                messageElem.classList.remove('text-green-400');
+                messageElem.classList.add('text-red-400');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Admin Account';
+            }
+        }
+
+        async function handleDeleteAccount(accountId, username) {
+            showConfirmModal(`Are you sure you want to delete account '${username}'?`, async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        const accountDocRef = doc(db, `artifacts/${appId}/public/data/accounts`, accountId);
+                        await deleteDoc(accountDocRef);
+                        // No need to manually update accounts array, onSnapshot will handle it
+                        console.log(`Account '${username}' deleted successfully!`);
+                        // Re-render the current page to update the list
+                        updatePageContent();
+                    } catch (error) {
+                        console.error("Error deleting account:", error);
+                        alert(`Error deleting account: ${error.message}`); // Using alert for critical errors if custom modal is not desired here
+                    }
+                }
+            });
+        }
+
+        // --- Initialization and Event Listeners ---
+        window.onload = function() {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Initialize Firebase
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        document.getElementById('userIdDisplay').textContent = `Your User ID: ${currentUserId}`;
+                        document.getElementById('userIdDisplay').classList.remove('hidden');
+                    } else {
+                        if (typeof __initial_auth_token !== 'undefined') {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                    isAuthReady = true;
+                    updatePageContent(); // Initial render after auth is ready
+                });
+
+                // Set up real-time listener for accounts
+                const accountsColRef = collection(db, `artifacts/${appId}/public/data/accounts`);
+                const q = query(accountsColRef);
+
+                onSnapshot(q, (snapshot) => {
+                    accounts = snapshot.docs.map(doc => ({
+                        id: doc.id, // Store Firestore document ID
+                        ...doc.data()
+                    }));
+                    // Add holTEST1 if it doesn't exist in Firestore
+                    const holTest1Exists = accounts.some(acc => acc.username === 'holTEST1');
+                    if (!holTest1Exists) {
+                        addDoc(accountsColRef, { username: 'holTEST1', password: 'holTEST1!tester@test#1', role: 'member' })
+                            .then(() => console.log("holTEST1 account added to Firestore."))
+                            .catch(e => console.error("Error adding holTEST1:", e));
+                    }
+                    // Re-render the current page to reflect updated accounts list
+                    updatePageContent();
+                }, (error) => {
+                    console.error("Error fetching accounts:", error);
+                    document.getElementById('app-content').querySelector('div').innerHTML = `<div class="text-center text-xl text-red-400">Error loading accounts: ${error.message}</div>`;
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                document.getElementById('app-content').querySelector('div').innerHTML = `<div class="text-center text-xl text-red-400">Error initializing website: ${error.message}</div>`;
+            }
+
+            // Navigation button event listeners
+            document.getElementById('homeBtn').onclick = () => { currentPage = 'home'; updatePageContent(); };
+            document.getElementById('memberMenuBtn').onclick = () => { currentPage = 'memberMenu'; updatePageContent(); };
+            document.getElementById('servicesBtn').onclick = () => { currentPage = 'services'; updatePageContent(); };
+            document.getElementById('groupServicesBtn').onclick = () => { currentPage = 'groupServices'; updatePageContent(); };
+            document.getElementById('adminMenuBtn').onclick = () => { currentPage = 'adminMenu'; updatePageContent(); };
+            document.getElementById('masterMenuBtn').onclick = () => { currentPage = 'masterMenu'; updatePageContent(); };
+        };
+    </script>
+</body>
 </html>
