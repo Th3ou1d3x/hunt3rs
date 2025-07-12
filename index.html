@@ -429,8 +429,8 @@
         const emojis = [
             '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎',
             '😍', '😘', '😗', '😙', '😚', '🙂', '🤗', '🤔', '😮', '🤐', '😐', '😑',
-            '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷',
-            '🤒', '🤕', '🤢', '🤮', '�', '😇', '🤠', '🤡', '🥳', '🥺', '🤩', '🤯',
+            '😶', '😏', '😒', '🙄', '😬', '�', '😌', '😔', '😪', '🤤', '😴', '😷',
+            '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥺', '🤩', '🤯',
             '🤪', '😵', '😡', '😠', '🤬', '😈', '👿', '💀', '👻', '👽', '🤖', '💩',
             '👍', '👎', '👌', '👏', '🙌', '🙏', '💪', '👀', '✨', '🔥', '🎉', '💯',
             '❤️', '💔', '💖', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎', '🌈',
@@ -469,7 +469,8 @@
 
         async function searchTenorGifs(query) {
             if (!TENOR_API_KEY || TENOR_API_KEY === "YOUR_TENOR_API_KEY") {
-                alert("Please replace 'YOUR_TENOR_API_KEY' in the JavaScript code with your actual Tenor API key to enable GIF search.");
+                console.error("Tenor API Key is not set. Please replace 'YOUR_TENOR_API_KEY' with your actual key.");
+                // Optionally, display a user-friendly message in the modal
                 return [];
             }
             const url = `https://api.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20&media_filter=basic`;
@@ -483,7 +484,8 @@
                 return data.results; // Array of GIF objects
             } catch (error) {
                 console.error("Error searching Tenor GIFs:", error);
-                alert("Failed to search GIFs. Please check your Tenor API key and network connection. (CORS might be an issue if running locally without a proxy)");
+                // Instead of alert, log to console or show a temporary message in the modal
+                // alert("Failed to search GIFs. Please check your Tenor API key and network connection. (CORS might be an issue if running locally without a proxy)");
                 return [];
             }
         }
@@ -547,12 +549,12 @@
                         currentMessageStyle.gifUrl = img.dataset.fullGifUrl; // Set the full GIF URL
                         activeMessageInput.value = ''; // Clear text input
                         document.getElementById('gifSearchModalContainer').innerHTML = ''; // Close modal
-                        alert("GIF selected! It will be sent with your message. You can still add text as a caption.");
+                        console.log("GIF selected! It will be sent with your message. You can still add text as a caption.");
                         // The setupStylingToolbar will be called on next focus, resetting the style.
                         // We need to ensure gifUrl persists until send.
                         // This is handled by currentMessageStyle being global.
                     } else {
-                        alert("No active message input found. Please click on a message box first.");
+                        console.warn("No active message input found when selecting GIF.");
                         document.getElementById('gifSearchModalContainer').innerHTML = ''; // Close modal
                     }
                 };
@@ -958,7 +960,7 @@
 
             const messageContent = {};
 
-            // Prioritize text if it exists, and apply styling
+            // If there's text, add it with its style
             if (messageText) {
                 messageContent.text = messageText;
                 messageContent.style = {
@@ -973,9 +975,9 @@
                 messageContent.gifUrl = currentMessageStyle.gifUrl;
             }
 
-            // If neither text nor GIF is present, alert and stop
+            // If neither text nor GIF is present, warn and stop
             if (!messageContent.text && !messageContent.gifUrl) {
-                alert("Please enter a message or select a GIF.");
+                console.warn("Attempted to send empty message: No text and no GIF provided.");
                 return;
             }
 
@@ -995,7 +997,7 @@
                 setupStylingToolbar('dmMessageInput', 'dmToolbar'); // Re-init to update button states
             } catch (error) {
                 console.error("Error sending DM:", error);
-                alert("Failed to send message: " + error.message);
+                // alert("Failed to send message: " + error.message); // Replaced with console.error
             }
         }
 
@@ -1279,7 +1281,7 @@
 
             const messageContent = {};
 
-            // Prioritize text if it exists, and apply styling
+            // If there's text, add it with its style
             if (messageText) {
                 messageContent.text = messageText;
                 messageContent.style = {
@@ -1294,9 +1296,9 @@
                 messageContent.gifUrl = currentMessageStyle.gifUrl;
             }
 
-            // If neither text nor GIF is present, alert and stop
+            // If neither text nor GIF is present, warn and stop
             if (!messageContent.text && !messageContent.gifUrl) {
-                alert("Please enter a message or select a GIF.");
+                console.warn("Attempted to send empty message: No text and no GIF provided.");
                 return;
             }
 
@@ -1313,7 +1315,7 @@
                 setupStylingToolbar('groupMessageInput', 'groupToolbar'); // Re-init to update button states
             } catch (error) {
                 console.error("Error sending group message:", error);
-                alert("Failed to send message: " + error.message);
+                // alert("Failed to send message: " + error.message); // Replaced with console.error
             }
         }
 
@@ -1411,7 +1413,7 @@
             const contentText = firstPostContentInput.value.trim();
 
             const postContent = {};
-            // Prioritize text if it exists, and apply styling
+            // If there's text, add it with its style
             if (contentText) {
                 postContent.text = contentText;
                 postContent.style = {
@@ -1426,7 +1428,7 @@
                 postContent.gifUrl = currentMessageStyle.gifUrl;
             }
 
-            // If neither text nor GIF is present, alert and stop
+            // If neither text nor GIF is present, warn and stop
             if (!postContent.text && !postContent.gifUrl) {
                 messageElem.textContent = 'Please enter a message or select a GIF.';
                 messageElem.classList.remove('text-green-400');
@@ -1641,7 +1643,7 @@
             const postText = forumPostInput.value.trim();
 
             const postContent = {};
-            // Prioritize text if it exists, and apply styling
+            // If there's text, add it with its style
             if (postText) {
                 postContent.text = postText;
                 postContent.style = {
@@ -1656,9 +1658,9 @@
                 postContent.gifUrl = currentMessageStyle.gifUrl;
             }
 
-            // If neither text nor GIF is present, alert and stop
+            // If neither text nor GIF is present, warn and stop
             if (!postContent.text && !postContent.gifUrl) {
-                alert("Please enter a message or select a GIF.");
+                console.warn("Attempted to send empty post: No text and no GIF provided.");
                 return;
             }
 
@@ -1675,7 +1677,7 @@
                 setupStylingToolbar('forumPostInput', 'forumPostToolbar'); // Re-init to update button states
             } catch (error) {
                 console.error("Error sending forum post:", error);
-                alert("Failed to send post: " + error.message);
+                // alert("Failed to send post: " + error.message); // Replaced with console.error
             }
         }
 
@@ -2001,7 +2003,7 @@
                         updatePageContent(); // Re-render the current page to update the list
                     } catch (error) {
                         console.error("Error deleting account:", error);
-                        alert(`Error deleting account: ${error.message}`);
+                        // alert(`Error deleting account: ${error.message}`); // Replaced with console.error
                     }
                 }
             });
