@@ -147,6 +147,7 @@
         let auth;
         let currentUserId = null;
         let isAuthReady = false; // To ensure auth is ready before DB ops
+        let appId; // Declare appId globally
 
         // Application specific states
         let loggedInUser = null; // { username: '...', role: 'member' | 'admin' | 'master' }
@@ -528,7 +529,7 @@
 
             // Determine the conversation path (sorted usernames for consistency)
             const users = [loggedInUser.username, recipientUsername].sort();
-            const conversationPath = `artifacts/${__app_id}/public/data/dms/${users[0]}_${users[1]}/messages`;
+            const conversationPath = `artifacts/${appId}/public/data/dms/${users[0]}_${users[1]}/messages`;
             const dmMessagesRef = ref(db, conversationPath);
 
             // Set up new listener
@@ -574,7 +575,7 @@
             if (messageText === '') return;
 
             const users = [loggedInUser.username, currentDMRecipient].sort();
-            const conversationPath = `artifacts/${__app_id}/public/data/dms/${users[0]}_${users[1]}/messages`;
+            const conversationPath = `artifacts/${appId}/public/data/dms/${users[0]}_${users[1]}/messages`;
             const dmMessagesRef = ref(db, conversationPath);
 
             try {
@@ -713,7 +714,7 @@
             selectedMembers.push(loggedInUser.username); // Add creator to the group members
 
             try {
-                const groupsRef = ref(db, `artifacts/${__app_id}/public/data/groups`);
+                const groupsRef = ref(db, `artifacts/${appId}/public/data/groups`);
                 const newGroupRef = push(groupsRef); // Generate unique group ID
                 const groupId = newGroupRef.key;
 
@@ -740,7 +741,7 @@
 
         function fetchAndDisplayGroups() {
             const groupsListElem = document.getElementById('groupsList');
-            const groupsRef = ref(db, `artifacts/${__app_id}/public/data/groups`);
+            const groupsRef = ref(db, `artifacts/${appId}/public/data/groups`);
 
             // Clean up previous listener if any
             if (window.groupsListenerOff) {
@@ -799,7 +800,7 @@
                 window.groupListenerOff = null;
             }
 
-            const groupMessagesRef = ref(db, `artifacts/${__app_id}/public/data/groups/${group.id}/messages`);
+            const groupMessagesRef = ref(db, `artifacts/${appId}/public/data/groups/${group.id}/messages`);
 
             // Set up new listener
             window.groupListenerOff = onValue(groupMessagesRef, (snapshot) => {
@@ -842,7 +843,7 @@
 
             if (messageText === '') return;
 
-            const groupMessagesRef = ref(db, `artifacts/${__app_id}/public/data/groups/${currentGroup.id}/messages`);
+            const groupMessagesRef = ref(db, `artifacts/${appId}/public/data/groups/${currentGroup.id}/messages`);
 
             try {
                 await push(groupMessagesRef, {
@@ -944,7 +945,7 @@
             }
 
             try {
-                const forumTopicsRef = ref(db, `artifacts/${__app_id}/public/data/forum/topics`);
+                const forumTopicsRef = ref(db, `artifacts/${appId}/public/data/forum/topics`);
                 const newTopicRef = push(forumTopicsRef); // Generate unique topic ID
                 const topicId = newTopicRef.key;
 
@@ -956,7 +957,7 @@
                 });
 
                 // Add the first post
-                const topicPostsRef = ref(db, `artifacts/${__app_id}/public/data/forum/topics/${topicId}/posts`);
+                const topicPostsRef = ref(db, `artifacts/${appId}/public/data/forum/topics/${topicId}/posts`);
                 await push(topicPostsRef, {
                     author: loggedInUser.username,
                     text: content,
@@ -980,7 +981,7 @@
 
         function fetchAndDisplayForumTopics() {
             const forumTopicsListElem = document.getElementById('forumTopicsList');
-            const forumTopicsRef = ref(db, `artifacts/${__app_id}/public/data/forum/topics`);
+            const forumTopicsRef = ref(db, `artifacts/${appId}/public/data/forum/topics`);
 
             // Clean up previous listener if any
             if (window.forumTopicsListenerOff) {
@@ -1072,7 +1073,7 @@
 
         function fetchAndDisplayForumPosts(topicId) {
             const forumPostsListElem = document.getElementById('forumPostsList');
-            const topicPostsRef = ref(db, `artifacts/${__app_id}/public/data/forum/topics/${topicId}/posts`);
+            const topicPostsRef = ref(db, `artifacts/${appId}/public/data/forum/topics/${topicId}/posts`);
 
             // Clean up previous listener if any
             if (window.forumPostsListenerOff) {
@@ -1119,7 +1120,7 @@
 
             if (postText === '') return;
 
-            const topicPostsRef = ref(db, `artifacts/${__app_id}/public/data/forum/topics/${currentForumTopic.id}/posts`);
+            const topicPostsRef = ref(db, `artifacts/${appId}/public/data/forum/topics/${currentForumTopic.id}/posts`);
 
             try {
                 await push(topicPostsRef, {
@@ -1377,7 +1378,7 @@
 
             try {
                 // Realtime Database uses push() for unique keys
-                const newAccountRef = push(ref(db, `artifacts/${__app_id}/public/data/accounts`));
+                const newAccountRef = push(ref(db, `artifacts/${appId}/public/data/accounts`));
                 await set(newAccountRef, { username: newUsername, password: newPassword, role: newRole });
                 messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
                 messageElem.classList.remove('text-red-400');
@@ -1425,7 +1426,7 @@
             }
 
             try {
-                const newAccountRef = push(ref(db, `artifacts/${__app_id}/public/data/accounts`));
+                const newAccountRef = push(ref(db, `artifacts/${appId}/public/data/accounts`));
                 await set(newAccountRef, { username: newUsername, password: newPassword, role: newRole });
                 messageElem.textContent = `Account '${newUsername}' with role '${newRole}' created successfully!`;
                 messageElem.classList.remove('text-red-400');
@@ -1450,7 +1451,7 @@
                 if (confirmed) {
                     try {
                         // Realtime Database uses remove()
-                        await remove(ref(db, `artifacts/${__app_id}/public/data/accounts/${accountId}`));
+                        await remove(ref(db, `artifacts/${appId}/public/data/accounts/${accountId}`));
                         console.log(`Account '${username}' deleted successfully!`);
                         // No need to manually update accounts array, onValue will handle it
                         updatePageContent(); // Re-render the current page to update the list
@@ -1478,7 +1479,7 @@
                     databaseURL: "https://hunt3rs-db-f10d3-default-rtdb.firebaseio.com" // Your Realtime Database URL
                 };
 
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Assign to global appId
                 
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
