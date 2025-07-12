@@ -430,7 +430,7 @@
             '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎',
             '😍', '😘', '😗', '😙', '😚', '🙂', '🤗', '🤔', '😮', '🤐', '😐', '😑',
             '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷',
-            '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥺', '🤩', '�',
+            '🤒', '🤕', '🤢', '🤮', '�', '😇', '🤠', '🤡', '🥳', '🥺', '🤩', '🤯',
             '🤪', '😵', '😡', '😠', '🤬', '😈', '👿', '💀', '👻', '👽', '🤖', '💩',
             '👍', '👎', '👌', '👏', '🙌', '🙏', '💪', '👀', '✨', '🔥', '🎉', '💯',
             '❤️', '💔', '💖', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎', '🌈',
@@ -956,26 +956,28 @@
             const dmMessageInput = document.getElementById('dmMessageInput');
             const messageText = dmMessageInput.value.trim();
 
-            // If a GIF URL is set, prioritize it. Otherwise, use text.
             const messageContent = {};
+
+            // Prioritize text if it exists, and apply styling
+            if (messageText) {
+                messageContent.text = messageText;
+                messageContent.style = {
+                    bold: currentMessageStyle.bold,
+                    italic: currentMessageStyle.italic,
+                    color: currentMessageStyle.color
+                };
+            }
+
+            // Add GIF if a GIF URL is set
             if (currentMessageStyle.gifUrl) {
                 messageContent.gifUrl = currentMessageStyle.gifUrl;
-                if (messageText) { // Allow text as caption for GIF
-                    messageContent.text = messageText;
-                }
-            } else if (messageText) {
-                messageContent.text = messageText;
-            } else {
-                alert("Please enter a message or provide a GIF URL.");
+            }
+
+            // If neither text nor GIF is present, alert and stop
+            if (!messageContent.text && !messageContent.gifUrl) {
+                alert("Please enter a message or select a GIF.");
                 return;
             }
-
-            // Add styling if text is present
-            if (messageContent.text) {
-                messageContent.style = { ...currentMessageStyle }; // Copy current style
-                delete messageContent.style.gifUrl; // Don't store gifUrl in text style
-            }
-
 
             const users = [loggedInUser.username, currentDMRecipient].sort();
             const conversationPath = `artifacts/${appId}/public/data/dms/${users[0]}_${users[1]}/messages`;
@@ -988,7 +990,7 @@
                     timestamp: Date.now()
                 });
                 dmMessageInput.value = ''; // Clear input
-                // Reset styling after sending
+                // Reset styling and GIF URL after sending
                 currentMessageStyle = { bold: false, italic: false, color: '#ffffff', gifUrl: null };
                 setupStylingToolbar('dmMessageInput', 'dmToolbar'); // Re-init to update button states
             } catch (error) {
@@ -1276,21 +1278,26 @@
             const messageText = groupMessageInput.value.trim();
 
             const messageContent = {};
-            if (currentMessageStyle.gifUrl) {
-                messageContent.gifUrl = currentMessageStyle.gifUrl;
-                if (messageText) {
-                    messageContent.text = messageText;
-                }
-            } else if (messageText) {
+
+            // Prioritize text if it exists, and apply styling
+            if (messageText) {
                 messageContent.text = messageText;
-            } else {
-                alert("Please enter a message or provide a GIF URL.");
-                return;
+                messageContent.style = {
+                    bold: currentMessageStyle.bold,
+                    italic: currentMessageStyle.italic,
+                    color: currentMessageStyle.color
+                };
             }
 
-            if (messageContent.text) {
-                messageContent.style = { ...currentMessageStyle };
-                delete messageContent.style.gifUrl;
+            // Add GIF if a GIF URL is set
+            if (currentMessageStyle.gifUrl) {
+                messageContent.gifUrl = currentMessageStyle.gifUrl;
+            }
+
+            // If neither text nor GIF is present, alert and stop
+            if (!messageContent.text && !messageContent.gifUrl) {
+                alert("Please enter a message or select a GIF.");
+                return;
             }
 
             const groupMessagesRef = ref(db, `artifacts/${appId}/public/data/groups/${currentGroup.id}/messages`);
@@ -1404,23 +1411,27 @@
             const contentText = firstPostContentInput.value.trim();
 
             const postContent = {};
+            // Prioritize text if it exists, and apply styling
+            if (contentText) {
+                postContent.text = contentText;
+                postContent.style = {
+                    bold: currentMessageStyle.bold,
+                    italic: currentMessageStyle.italic,
+                    color: currentMessageStyle.color
+                };
+            }
+
+            // Add GIF if a GIF URL is set
             if (currentMessageStyle.gifUrl) {
                 postContent.gifUrl = currentMessageStyle.gifUrl;
-                if (contentText) {
-                    postContent.text = contentText;
-                }
-            } else if (contentText) {
-                postContent.text = contentText;
-            } else {
-                messageElem.textContent = 'Topic title and first post content (or GIF) cannot be empty.';
+            }
+
+            // If neither text nor GIF is present, alert and stop
+            if (!postContent.text && !postContent.gifUrl) {
+                messageElem.textContent = 'Please enter a message or select a GIF.';
                 messageElem.classList.remove('text-green-400');
                 messageElem.classList.add('text-red-400');
                 return;
-            }
-
-            if (postContent.text) {
-                postContent.style = { ...currentMessageStyle };
-                delete postContent.style.gifUrl;
             }
 
             if (title === '') {
@@ -1630,21 +1641,25 @@
             const postText = forumPostInput.value.trim();
 
             const postContent = {};
-            if (currentMessageStyle.gifUrl) {
-                postContent.gifUrl = currentMessageStyle.gifUrl;
-                if (postText) {
-                    postContent.text = postText;
-                }
-            } else if (postText) {
+            // Prioritize text if it exists, and apply styling
+            if (postText) {
                 postContent.text = postText;
-            } else {
-                alert("Please enter a message or provide a GIF URL.");
-                return;
+                postContent.style = {
+                    bold: currentMessageStyle.bold,
+                    italic: currentMessageStyle.italic,
+                    color: currentMessageStyle.color
+                };
             }
 
-            if (postContent.text) {
-                postContent.style = { ...currentMessageStyle };
-                delete postContent.style.gifUrl;
+            // Add GIF if a GIF URL is set
+            if (currentMessageStyle.gifUrl) {
+                postContent.gifUrl = currentMessageStyle.gifUrl;
+            }
+
+            // If neither text nor GIF is present, alert and stop
+            if (!postContent.text && !postContent.gifUrl) {
+                alert("Please enter a message or select a GIF.");
+                return;
             }
 
             const topicPostsRef = ref(db, `artifacts/${appId}/public/data/forum/topics/${currentForumTopic.id}/posts`);
@@ -1656,7 +1671,7 @@
                     timestamp: Date.now()
                 });
                 forumPostInput.value = ''; // Clear input
-                currentMessageStyle = { bold: false, italic: false, color: '#ffffff', gifUrl: null };
+                currentMessageStyle = { bold: false, italic: false, color: '#ffffff', gifUrl: null }; // Reset styling
                 setupStylingToolbar('forumPostInput', 'forumPostToolbar'); // Re-init to update button states
             } catch (error) {
                 console.error("Error sending forum post:", error);
@@ -2008,7 +2023,7 @@
                     databaseURL: "https://hunt3rs-db-f10d3-default-rtdb.firebaseio.com" // Your Realtime Database URL
                 };
 
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Assign to global appId
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; 
                 
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
